@@ -1,7 +1,7 @@
-from main import ChatBot
+from bot.FAQChatBot import FAQChatBot
 import streamlit as st
 
-bot = ChatBot(filepath="./data/sample_text.txt", encoding="utf-8")
+bot = FAQChatBot(filepath="./data/sample_text.txt", encoding="utf-8")
 
 st.set_page_config(page_title="Random Financial Analyst Bot", page_icon=":robot:")
 with st.sidebar:
