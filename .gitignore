@@ -1,6 +1,11 @@
+# venvs
 chatbot_salesforce
+chatbot
+
+# pipfile
 Pipfile.lock
 Pipfile
+
 .env
 __pycache__
 data
