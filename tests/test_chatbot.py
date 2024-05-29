@@ -7,10 +7,21 @@ from main import ChatBot
 
 
 class ChatSimulator:
-    def __init__(self):
-        self.bot = ChatBot(filepath="./data/sample_text.txt", encoding="utf-8")
+    def __init__(
+        self,
+        filepath="./data/sample_text.txt",
+        encoding="utf-8",
+        index_name="langchain-demo",
+        namespace="test-namespace",
+    ):
+        self.bot = ChatBot(
+            filepath=filepath,
+            encoding=encoding,
+            index_name=index_name,
+            namespace=namespace,
+        )
         self.messages = [
-            {"role": "assistant", "content": "Welcome, let's make you some money!"}
+            {"role": "assistant", "content": "Welcome, how can I help you today?"}
         ]
 
     def generate_response(self, input):
@@ -38,7 +49,7 @@ class ChatSimulator:
                 break
             self.add_user_message(user_input)
 
-            print("Getting your answer from the investment vault...")
+            print("Getting your answer from the text vault...")
             response = self.generate_response(user_input)
             self.add_assistant_message(response)
 
@@ -46,5 +57,7 @@ class ChatSimulator:
 
 
 if __name__ == "__main__":
-    simulator = ChatSimulator()
+    simulator = ChatSimulator(
+        filepath="./data/gold_standards_kpis.md", encoding="utf-8"
+    )
     simulator.run_chat_simulation()

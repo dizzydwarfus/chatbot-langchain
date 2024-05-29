@@ -1,8 +1,6 @@
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import TextLoader
 from langchain.embeddings import HuggingFaceEmbeddings
-
-# from langchain.llms import HuggingFaceHub
 from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
@@ -11,13 +9,22 @@ from langchain_pinecone import PineconeVectorStore
 import os
 from dotenv import load_dotenv
 from pinecone import Pinecone, ServerlessSpec
+import numpy as np
 
 
 class ChatBot:
-    def __init__(self, filepath, encoding="utf-8"):
+    def __init__(
+        self,
+        filepath: str,
+        encoding: str = "utf-8",
+        index_name: str = "langchain-demo",
+        namespace: str = "default_namespace",
+    ):
         load_dotenv()
         self.filepath = os.path.abspath(filepath)
         self.encoding = encoding
+        self.index_name = index_name
+        self.namespace = namespace
         self.initialize_pinecone()
         self.initialize_model()
         self.create_chain()
@@ -39,42 +46,56 @@ class ChatBot:
                 api_key=os.getenv("PINECONE_API_KEY"),
             )
 
-            self.index_name = "langchain-demo"
-            self.namespace = "press-release"
-
             if self.index_name not in self.pc.list_indexes().names():
                 self.pc.create_index(
                     name=self.index_name,
-                    dimension=768,  # Adjust this dimension based on your embedding model
+                    dimension=768,  # Dimension of the embeddings based on embedding model
                     metric="cosine",
                     spec=ServerlessSpec(
-                        cloud="aws",  # Replace with your cloud provider
-                        region="us-east-1",  # Replace with your region
+                        cloud="aws",
+                        region="us-east-1",
                     ),
                 )
-                self.docsearch = PineconeVectorStore.from_documents(
-                    documents=self.docs,
-                    embedding=self.embeddings,
-                    index_name=self.index_name,
-                    namespace=self.namespace,
+
+            self.index = self.pc.Index(self.index_name)
+
+            # Function to generate unique IDs for each document chunk
+            def generate_document_id(base_id, chunk_index):
+                return f"{base_id}_chunk{chunk_index}"
+
+            # Prepare data for upsert
+            vectors_to_upsert = []
+            for i, doc in enumerate(self.docs):
+                doc_id = generate_document_id("kpi_doc", i)
+                embedding = self.embeddings.embed_documents(doc.page_content)
+                flatten_embedding = np.array(embedding).flatten().tolist()
+                vectors_to_upsert.append(
+                    {
+                        "id": doc_id,
+                        "values": flatten_embedding,
+                        "metadata": {
+                            "text": doc.page_content,
+                            "source": doc.metadata["source"],
+                        },
+                    }
                 )
-            else:
-                self.docsearch = PineconeVectorStore.from_existing_index(
-                    embedding=self.embeddings,
-                    index_name=self.index_name,
-                    namespace=self.namespace,
-                )
+
+            # Upsert data into Pinecone
+            self.index.upsert(
+                vectors=vectors_to_upsert,
+                namespace=self.namespace,
+            )
+
+            self.docsearch = PineconeVectorStore.from_existing_index(
+                index_name=self.index_name,
+                embedding=self.embeddings,
+                namespace=self.namespace,
+            )
         except Exception as e:
             print(f"Error initializing Pinecone: {e}")
             raise
 
     def initialize_model(self):
-        # repo_id = "mistralai/Mixtral-8x7B-Instruct-v0.1"
-        # self.llm = HuggingFaceHub(
-        #     repo_id=repo_id,
-        #     model_kwargs={"temperature": 0.8, "top_k": 50},
-        #     huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY"),
-        # )
         self.llm = ChatOpenAI(
             api_key=os.getenv("OPENAI_API_KEY"),
             model_name="gpt-3.5-turbo",
@@ -104,9 +125,3 @@ class ChatBot:
             | self.llm
             | StrOutputParser()
         )
-
-
-# Example usage in app.py
-# if __name__ == "__main__":
-# Assuming this script is named `main.py`
-# bot = ChatBot(filepath="./data/sample_text.txt", encoding="utf-8")
