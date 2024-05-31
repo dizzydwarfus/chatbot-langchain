@@ -1,4 +1,3 @@
-from langchain.embeddings import HuggingFaceEmbeddings
 from langchain_openai import OpenAIEmbeddings
 import os
 
@@ -8,7 +7,6 @@ class EmbeddingManager:
         self.embeddings = OpenAIEmbeddings(
             api_key=os.getenv("OPENAI_API_KEY"), model="text-embedding-3-small"
         )
-        # self.embeddings = HuggingFaceEmbeddings()
         self.id_label = id_label
 
     def generate_embeddings(self, docs):

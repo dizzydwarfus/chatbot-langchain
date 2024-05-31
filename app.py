@@ -2,21 +2,23 @@ from bot.FAQChatBot import FAQChatBot
 import streamlit as st
 
 bot = FAQChatBot(
-    filepath="./data/gold_standards_kpis.md",
+    filepath="./data/pbf_faq.md",
     encoding="utf-8",
     index_name="openai-embedder",
-    namespace="kpi-doc",
+    namespace="pbf-faq-doc",
     dimension=1536,
     chunk_id_label="kpi_doc",
+    chunk_size=1000,
+    chunk_overlap=4,
     inference_model="gpt-3.5-turbo",
 )
 bot.initialize_pinecone(upsert_vectors=True)
 bot.initialize_model()
 bot.create_chain()
 
-st.set_page_config(page_title="Random Financial Analyst Bot", page_icon=":robot:")
+st.set_page_config(page_title="Random ChatBot", page_icon=":robot:")
 with st.sidebar:
-    st.title("Random Financial Analyst Bot")
+    st.title("Random ChatBot")
 
 
 def generate_response(input):
@@ -26,7 +28,7 @@ def generate_response(input):
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Welcome, let's make you some money!"}
+        {"role": "assistant", "content": "Welcome, how can I help you today?"}
     ]
 
 for message in st.session_state.messages:
@@ -40,7 +42,7 @@ if input := st.chat_input():
 
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
-        with st.spinner("Getting your answer from the investment vault..."):
+        with st.spinner("Getting your answer from the data vault..."):
             response = generate_response(input)
             st.write(response)
     message = {"role": "assistant", "content": response}

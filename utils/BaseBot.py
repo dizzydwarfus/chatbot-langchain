@@ -32,6 +32,8 @@ class BaseChatBot:
         region: str = "us-east-1",
         embed_docs: bool = True,
         chunk_id_label: str = "doc",
+        chunk_size: int = 1000,
+        chunk_overlap: int = 4,
         inference_model: str = "gpt-3.5-turbo",
     ):
         load_dotenv()
@@ -45,12 +47,11 @@ class BaseChatBot:
         self.region = region
         self.inference_model = inference_model
         self.embed_docs = embed_docs
-        self.chunk_id_label = chunk_id_label
         self.doc_processor = DocumentProcessor(
             filepath=self.filepath,
             encoding=self.encoding,
-            chunk_size=1000,
-            chunk_overlap=4,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
         )
         self.pinecone_manager = PineconeManager(
             api_key=os.getenv("PINECONE_API_KEY"),
