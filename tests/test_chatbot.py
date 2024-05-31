@@ -3,23 +3,32 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from main import ChatBot
+from bot.FAQChatBot import FAQChatBot
 
 
 class ChatSimulator:
     def __init__(
         self,
-        filepath="./data/sample_text.txt",
+        filepath="../data/gold_standards_kpis.md",
         encoding="utf-8",
-        index_name="langchain-demo",
-        namespace="test-namespace",
+        index_name="openai-embedder",
+        namespace="kpi-doc",
+        dimension=1536,
+        chunk_id_label="kpi_doc",
+        inference_model="gpt-3.5-turbo",
     ):
-        self.bot = ChatBot(
+        self.bot = FAQChatBot(
             filepath=filepath,
             encoding=encoding,
             index_name=index_name,
             namespace=namespace,
+            dimension=dimension,
+            chunk_id_label=chunk_id_label,
+            inference_model=inference_model,
         )
+        self.bot.initialize_pinecone(upsert_vectors=False)
+        self.bot.initialize_model()
+        self.bot.create_chain()
         self.messages = [
             {"role": "assistant", "content": "Welcome, how can I help you today?"}
         ]
@@ -31,6 +40,7 @@ class ChatSimulator:
     def display_messages(self):
         for message in self.messages:
             print(f"{message['role'].capitalize()}: {message['content']}")
+        print()
 
     def add_user_message(self, user_input):
         self.messages.append({"role": "user", "content": user_input})

@@ -1,14 +1,18 @@
+# Built-in Imports
+import os
+
+# Third-Party Imports
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 from langchain_pinecone import PineconeVectorStore
-import os
 
-from document_processor import DocumentProcessor
-from embedding_manager import EmbeddingManager
-from pinecone_manager import PineconeManager
+# Internal Imports
+from utils.document_processor import DocumentProcessor
+from utils.embedding_manager import EmbeddingManager
+from utils.pinecone_manager import PineconeManager
 
 # require the following ENV variables to be set:
 # - OPENAI_API_KEY
@@ -18,15 +22,17 @@ from pinecone_manager import PineconeManager
 class BaseChatBot:
     def __init__(
         self,
-        filepath,
-        encoding="utf-8",
-        index_name="langchain-demo",
-        namespace="default_namespace",
-        dimension=768,
-        metric="cosine",
-        cloud="aws",
-        region="us-east-1",
-        inference_model="gpt-3.5-turbo",
+        filepath: str,
+        encoding: str = "utf-8",
+        index_name: str = "langchain-demo",
+        namespace: str = "default_namespace",
+        dimension: int = 768,
+        metric: str = "cosine",
+        cloud: str = "aws",
+        region: str = "us-east-1",
+        embed_docs: bool = True,
+        chunk_id_label: str = "doc",
+        inference_model: str = "gpt-3.5-turbo",
     ):
         load_dotenv()
         self.filepath = os.path.abspath(filepath)
@@ -38,6 +44,14 @@ class BaseChatBot:
         self.cloud = cloud
         self.region = region
         self.inference_model = inference_model
+        self.embed_docs = embed_docs
+        self.chunk_id_label = chunk_id_label
+        self.doc_processor = DocumentProcessor(
+            filepath=self.filepath,
+            encoding=self.encoding,
+            chunk_size=1000,
+            chunk_overlap=4,
+        )
         self.pinecone_manager = PineconeManager(
             api_key=os.getenv("PINECONE_API_KEY"),
             index_name=self.index_name,
@@ -47,25 +61,26 @@ class BaseChatBot:
             cloud=self.cloud,
             region=self.region,
         )
-        self.embedding_manager = EmbeddingManager()
-        self.initialize_pinecone()
-        self.initialize_model()
-        self.create_chain()
+        self.embedding_manager = EmbeddingManager(id_label=chunk_id_label)
+        # self.initialize_pinecone()
+        # self.initialize_model()
+        # self.create_chain()
 
-    def initialize_pinecone(self):
+    def initialize_pinecone(self, upsert_vectors: bool = True):
         try:
-            # Load and split documents
-            doc_processor = DocumentProcessor(
-                filepath=self.filepath, encoding=self.encoding
-            )
-            docs = doc_processor.load_and_split_documents()
+            self.docs = self.doc_processor.load_and_split_documents()
 
             # Generate embeddings
-            vectors_to_upsert = self.embedding_manager.generate_embeddings(docs)
+            if self.embed_docs:
+                self.vectors_to_upsert = self.embedding_manager.generate_embeddings(
+                    self.docs
+                )
 
             # Initialize Pinecone and upsert vectors
             self.pinecone_manager.initialize()
-            self.pinecone_manager.upsert_vectors(vectors_to_upsert)
+
+            if upsert_vectors:
+                self.pinecone_manager.upsert_vectors(self.vectors_to_upsert)
 
             # Create PineconeVectorStore from the existing index
             self.docsearch = PineconeVectorStore.from_existing_index(

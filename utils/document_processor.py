@@ -1,4 +1,4 @@
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import TextLoader
 
 
@@ -12,7 +12,7 @@ class DocumentProcessor:
     def load_and_split_documents(self):
         loader = TextLoader(self.filepath, encoding=self.encoding)
         documents = loader.load()
-        text_splitter = CharacterTextSplitter(
+        text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap
         )
         docs = text_splitter.split_documents(documents)
