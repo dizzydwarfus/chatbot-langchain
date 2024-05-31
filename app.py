@@ -1,7 +1,18 @@
 from bot.FAQChatBot import FAQChatBot
 import streamlit as st
 
-bot = FAQChatBot(filepath="./data/sample_text.txt", encoding="utf-8")
+bot = FAQChatBot(
+    filepath="./data/gold_standards_kpis.md",
+    encoding="utf-8",
+    index_name="openai-embedder",
+    namespace="kpi-doc",
+    dimension=1536,
+    chunk_id_label="kpi_doc",
+    inference_model="gpt-3.5-turbo",
+)
+bot.initialize_pinecone(upsert_vectors=True)
+bot.initialize_model()
+bot.create_chain()
 
 st.set_page_config(page_title="Random Financial Analyst Bot", page_icon=":robot:")
 with st.sidebar:
