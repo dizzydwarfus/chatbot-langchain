@@ -15,6 +15,8 @@ class ChatSimulator:
         namespace="kpi-doc",
         dimension=1536,
         chunk_id_label="kpi_doc",
+        chunk_size=1000,
+        chunk_overlap=4,
         inference_model="gpt-3.5-turbo",
     ):
         self.bot = FAQChatBot(
@@ -24,6 +26,8 @@ class ChatSimulator:
             namespace=namespace,
             dimension=dimension,
             chunk_id_label=chunk_id_label,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
             inference_model=inference_model,
         )
         self.bot.initialize_pinecone(upsert_vectors=False)
@@ -66,8 +70,8 @@ class ChatSimulator:
             self.display_messages()
 
 
-if __name__ == "__main__":
-    simulator = ChatSimulator(
-        filepath="./data/gold_standards_kpis.md", encoding="utf-8"
-    )
-    simulator.run_chat_simulation()
+# if __name__ == "__main__":
+#     simulator = ChatSimulator(
+#         filepath="./data/gold_standards_kpis.md", encoding="utf-8"
+#     )
+#     simulator.run_chat_simulation()

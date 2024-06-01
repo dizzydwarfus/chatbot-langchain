@@ -30,7 +30,6 @@ class BaseChatBot:
         metric: str = "cosine",
         cloud: str = "aws",
         region: str = "us-east-1",
-        embed_docs: bool = True,
         chunk_id_label: str = "doc",
         chunk_size: int = 1000,
         chunk_overlap: int = 4,
@@ -46,7 +45,6 @@ class BaseChatBot:
         self.cloud = cloud
         self.region = region
         self.inference_model = inference_model
-        self.embed_docs = embed_docs
         self.doc_processor = DocumentProcessor(
             filepath=self.filepath,
             encoding=self.encoding,
@@ -67,12 +65,12 @@ class BaseChatBot:
         # self.initialize_model()
         # self.create_chain()
 
-    def initialize_pinecone(self, upsert_vectors: bool = True):
+    def initialize_pinecone(self, upsert_vectors: bool = True, embed_docs: bool = True):
         try:
             self.docs = self.doc_processor.load_and_split_documents()
 
             # Generate embeddings
-            if self.embed_docs:
+            if embed_docs:
                 self.vectors_to_upsert = self.embedding_manager.generate_embeddings(
                     self.docs
                 )
