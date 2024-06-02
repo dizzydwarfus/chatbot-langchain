@@ -9,3 +9,5 @@ Pipfile
 .env
 __pycache__
 data
+
+*.log

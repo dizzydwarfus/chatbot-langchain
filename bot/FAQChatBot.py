@@ -1,4 +1,4 @@
-from utils.BaseBot import BaseChatBot
+from bot.utils.BaseBot import BaseChatBot
 
 
 class FAQChatBot(BaseChatBot):
