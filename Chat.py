@@ -30,9 +30,7 @@ if "bot" not in st.session_state:
         inference_model=None,
     )
 
-logger = MyLogger(
-    name="app.py", log_file="C:/Users/lianz/Python/chatbot-langchain/chatbot.log"
-).logger
+logger = MyLogger(name="app.py", log_file="./chatbot.log").logger
 
 
 with st.sidebar:

@@ -5,7 +5,7 @@ from bot.utils._logger import MyLogger
 
 logger = MyLogger(
     name="pinecone_manager.py",
-    log_file="C:/Users/lianz/Python/chatbot-langchain/chatbot.log",
+    log_file="./chatbot.log",
 ).logger
 
 
