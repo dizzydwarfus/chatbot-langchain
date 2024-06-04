@@ -144,7 +144,6 @@ if st.session_state.messages[-1]["role"] != "assistant":
     message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
 
-# logger.info(f"Session State:\n{json.dumps(dict(st.session_state), indent=2)}")
 
 if st.button("Clear Chat"):
     st.session_state.messages = [
