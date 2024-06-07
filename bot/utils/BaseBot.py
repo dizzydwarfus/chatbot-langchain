@@ -13,6 +13,7 @@ from langchain_pinecone import PineconeVectorStore
 from bot.utils.document_processor import DocumentProcessor
 from bot.utils.embedding_manager import EmbeddingManager
 from bot.utils.pinecone_manager import PineconeManager
+from bot.utils.logging_runnable import LoggingRunnable
 
 # require the following ENV variables to be set:
 # - OPENAI_API_KEY
@@ -120,10 +121,14 @@ class BaseChatBot:
             prompt = PromptTemplate(
                 template=template, input_variables=["context", "question"]
             )
+
+            logging_runnable = LoggingRunnable(logger)
+
             self.rag_chain = (
                 {
+                    # "messages": logging_runnable | RunnablePassthrough(),
                     "context": self.docsearch.as_retriever(),
-                    "question": RunnablePassthrough(),
+                    "question": logging_runnable | RunnablePassthrough(),
                 }
                 | prompt
                 | self.llm

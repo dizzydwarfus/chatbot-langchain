@@ -33,6 +33,26 @@ if "bot" not in st.session_state:
 logger = MyLogger(name="app.py", log_file="./chatbot.log").logger
 
 
+# Parsing functions
+def combine_messages(messages):
+    combined = ""
+    for message in messages[:]:
+        combined += f"{message['role']}: {message['content']}\n"
+    return combined.strip()
+
+
+def generate_response(messages, input):
+    st.write(messages[:])
+    combined_messages = combine_messages(messages)
+    st.write(combined_messages)
+    # result = st.session_state.bot.rag_chain.invoke(
+    #     {"messages": combined_messages, "question": question}
+    # )
+    result = st.session_state.bot.rag_chain.invoke(combined_messages)
+
+    return result
+
+
 with st.sidebar:
     st.title("Configuration")
 
@@ -115,11 +135,6 @@ with st.sidebar:
         # st.write(st.session_state.bot.docs)
 
 
-def generate_response(input):
-    result = st.session_state.bot.rag_chain.invoke(input)
-    return result
-
-
 st.title("Chat with the Random ChatBot")
 if "messages" not in st.session_state:
     st.session_state.messages = [
@@ -138,8 +153,7 @@ if input := st.chat_input():
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Getting your answer from the data vault..."):
-            response = generate_response(input)
-            # response = "This is a random response"
+            response = generate_response(st.session_state.messages, input)
             st.write(response)
     message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
